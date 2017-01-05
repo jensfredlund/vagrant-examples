@@ -1,0 +1,38 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANTFILE_API_VERSION = "2"
+
+# Provision shell script
+$SHELL_PROVISION = <<SCRIPT
+
+  # APT
+  apt-get update
+  apt-get upgrade -y
+
+SCRIPT
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+  # Settings
+  config.vm.box = "ubuntu/xenial64" # Distribution
+  config.vm.provision "shell", inline: $SHELL_PROVISION # shell script to run after creation
+
+  # Networking
+  config.vm.hostname = "ubuntu01.vb.lab"
+  config.vm.network "private_network", ip: "192.168.56.90"
+  config.vm.network "forwarded_port", guest: 22, host: 2210,
+    auto_correct: true
+
+  # Virtualbox provider settings
+  config.vm.provider :virtualbox do |vb|
+        vb.name = "ubuntu01.vb.lab"
+        vb.customize [
+           "modifyvm", :id,
+           "--groups", "/Ubuntu",
+           "--memory", "1024",
+           "--cpus", "1"
+        ]
+  end
+
+end

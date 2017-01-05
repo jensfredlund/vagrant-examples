@@ -1,0 +1,44 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Provision shell script
+$SHELL_PROVISION = <<SCRIPT
+
+   apt-get update -y
+   apt-get upgrade -y
+
+SCRIPT
+
+Vagrant.configure(2) do |config|
+
+  # Settings
+  config.vm.box = "ubuntu/xenial64" # Distribution
+  config.vm.provision "shell", inline: $SHELL_PROVISION # shell script to run after creation
+
+  # Networking
+  config.vm.hostname = "ubuntu02.vb.lab"
+  config.vm.network "private_network", ip: "192.168.56.99"
+  config.vm.network "forwarded_port", guest: 22, host: 2230,
+    auto_correct: true
+
+  # Virtualbox provider settings
+  config.vm.provider :virtualbox do |vb|
+        vb.name = "ubuntu02.vb.lab"
+        vb.customize [
+           "modifyvm", :id,
+           "--groups", "/Ubuntu",
+           "--memory", "1024",
+           "--cpus", "2"
+        ]
+  end
+
+  # Synced folders
+  config.vm.synced_folder "~/vshare", "/vagrant", disabled: false
+
+  # Virtualbox Guest additions path
+  config.vbguest.iso_path = "/usr/share/virtualbox/VBoxGuestAdditions.iso"
+
+  # Check for VirtualBox guest additions updates
+  config.vbguest.auto_update = true
+
+end
