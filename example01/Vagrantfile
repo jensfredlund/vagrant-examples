@@ -1,38 +1,45 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-VAGRANTFILE_API_VERSION = "2"
+API_VERSION = 2
+SSH_PUB_KEY = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
 
 # Provision shell script
 $SHELL_PROVISION = <<SCRIPT
 
-  # APT
-  apt-get update
-  apt-get upgrade -y
+    # Create SSH user
+    useradd jf -d /home/jf -s /bin/bash
+    mkdir -vp /home/jf/.ssh
+    echo #{SSH_PUB_KEY} >> /home/jf/.ssh/authorized_keys
+    echo 'jf ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/lusers
+    chown -vR jf:jf /home/jf
+
+    # APT
+    apt-get update
+    apt-get upgrade -y
 
 SCRIPT
 
-Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+Vagrant.configure(API_VERSION) do |config|
 
-  # Settings
-  config.vm.box = "ubuntu/xenial64" # Distribution
-  config.vm.provision "shell", inline: $SHELL_PROVISION # shell script to run after creation
+    # Settings
+    config.vm.box = "ubuntu/xenial64" # Distribution
+    config.vm.provision "shell", inline: $SHELL_PROVISION # shell script to run after creation
 
-  # Networking
-  config.vm.hostname = "ubuntu01.vb.lab"
-  config.vm.network "private_network", ip: "192.168.56.90"
-  config.vm.network "forwarded_port", guest: 22, host: 2210,
-    auto_correct: true
+    # Networking
+    config.vm.hostname = "ubuntu01.vb.lab"
+    config.vm.network "private_network", ip: "192.168.56.90"
+    config.vm.network "forwarded_port", guest: 22, host: 2210,
+        auto_correct: true
 
-  # Virtualbox provider settings
-  config.vm.provider :virtualbox do |vb|
+    # Virtualbox provider settings
+    config.vm.provider :virtualbox do |vb|
         vb.name = "ubuntu01.vb.lab"
         vb.customize [
-           "modifyvm", :id,
-           "--groups", "/Ubuntu",
-           "--memory", "1024",
-           "--cpus", "1"
+            "modifyvm", :id,
+            "--groups", "/Ubuntu",
+            "--memory", "1024",
+            "--cpus", "1"
         ]
-  end
-
+    end
 end

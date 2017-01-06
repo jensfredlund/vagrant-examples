@@ -1,28 +1,39 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+API_VERSION = 2
+SSH_PUB_KEY = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
+
 # Provision shell script
 $SHELL_PROVISION = <<SCRIPT
 
-   apt-get update -y
-   apt-get upgrade -y
+    # Create SSH user
+    useradd jf -d /home/jf -s /bin/bash
+    mkdir -vp /home/jf/.ssh
+    echo #{SSH_PUB_KEY} >> /home/jf/.ssh/authorized_keys
+    echo 'jf ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/lusers
+    chown -vR jf:jf /home/jf
+
+    # APT
+    apt-get update
+    apt-get upgrade -y
 
 SCRIPT
 
-Vagrant.configure(2) do |config|
+Vagrant.configure(API_VERSION) do |config|
 
-  # Settings
-  config.vm.box = "ubuntu/xenial64" # Distribution
-  config.vm.provision "shell", inline: $SHELL_PROVISION # shell script to run after creation
+    # Settings
+    config.vm.box = "ubuntu/xenial64" # Distribution
+    config.vm.provision "shell", inline: $SHELL_PROVISION # shell script to run after creation
 
-  # Networking
-  config.vm.hostname = "ubuntu02.vb.lab"
-  config.vm.network "private_network", ip: "192.168.56.99"
-  config.vm.network "forwarded_port", guest: 22, host: 2230,
-    auto_correct: true
+    # Networking
+    config.vm.hostname = "ubuntu02.vb.lab"
+    config.vm.network "private_network", ip: "192.168.56.99"
+    config.vm.network "forwarded_port", guest: 22, host: 2230,
+        auto_correct: true
 
-  # Virtualbox provider settings
-  config.vm.provider :virtualbox do |vb|
+    # Virtualbox provider settings
+    config.vm.provider :virtualbox do |vb|
         vb.name = "ubuntu02.vb.lab"
         vb.customize [
            "modifyvm", :id,
@@ -30,15 +41,15 @@ Vagrant.configure(2) do |config|
            "--memory", "1024",
            "--cpus", "2"
         ]
-  end
+    end
 
-  # Synced folders
-  config.vm.synced_folder "~/vshare", "/vagrant", disabled: false
+    # Synced folders
+    config.vm.synced_folder "~/vshare", "/vagrant", disabled: false
 
-  # Virtualbox Guest additions path
-  config.vbguest.iso_path = "/usr/share/virtualbox/VBoxGuestAdditions.iso"
+    # Virtualbox Guest additions path
+    config.vbguest.iso_path = "/usr/share/virtualbox/VBoxGuestAdditions.iso"
 
-  # Check for VirtualBox guest additions updates
-  config.vbguest.auto_update = true
+    # Check for VirtualBox guest additions updates
+    config.vbguest.auto_update = true
 
 end

@@ -1,0 +1,52 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+#
+# This Vagrant example will create x number of Virtualbox VMs.
+#
+
+# Settings
+API_VERSION = 2                 # Vagrant API version
+BOX_IMAGE = "ubuntu/xenial64"   # Vagrant BOX
+VM_NAME = "node"                # Virtualbox name & hostname of the node(x)
+VM_COUNT = 3                    # Create x number of identical VMs
+SSH_PUB_KEY = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
+
+$SHELL_PROVISION = <<SCRIPT
+
+    # Create SSH user
+    useradd jf -d /home/jf -s /bin/bash
+    mkdir -vp /home/jf/.ssh
+    echo #{SSH_PUB_KEY} >> /home/jf/.ssh/authorized_keys
+    echo 'jf ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/lusers
+    chown -vR jf:jf /home/jf
+
+    # APT
+    apt-get update
+    apt-get upgrade -y
+
+SCRIPT
+
+Vagrant.configure(API_VERSION) do |config|
+
+    (1..VM_COUNT).each do |i|
+
+        config.vm.define "#{VM_NAME}#{i}" do |vb|
+            vb.vm.box = BOX_IMAGE
+            vb.vm.provision "shell", inline: $SHELL_PROVISION
+            vb.vm.hostname = "#{VM_NAME}#{i}"
+            vb.vm.network "private_network", ip: "192.168.56.10#{i}"
+
+        # Virtualbox provider settings
+        config.vm.provider :virtualbox do |vb|
+            vb.name = "#{VM_NAME}#{i}"
+            vb.customize [
+                "modifyvm", :id,
+                "--groups", "/Demo cluster",
+                "--memory", "1024",
+                "--cpus", "2"
+            ]
+
+      end
+    end
+  end
+end
