@@ -2,9 +2,9 @@
 
 This is a Vagrant example with synced folders using Virtualbox guest additions   
   
-**jf@Tzunami:~/vagrant-examples/example01$** vagrant up  
+**jf@Tzunami:~/vagrant-examples/example02$** vagrant up  
 ```  
-Bringing machine 'ubuntu01.vb.lab' up with 'virtualbox' provider...  
+Bringing machine 'ubuntu02.vb.lab' up with 'virtualbox' provider...  
 ```
 
 ## Settings  
