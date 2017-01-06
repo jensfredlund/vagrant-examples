@@ -9,7 +9,7 @@ API_VERSION = 2                 # Vagrant API version
 BOX_IMAGE = "ubuntu/xenial64"   # Vagrant BOX
 VM_NAME = "node"                # Virtualbox name & hostname of the node(x)
 VM_COUNT = 3                    # Create x number of identical VMs
-SSH_PUB_KEY = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
+SSH_PUB_KEY = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip # SSH public key
 
 $SHELL_PROVISION = <<SCRIPT
 
