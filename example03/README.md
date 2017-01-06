@@ -1,6 +1,6 @@
 # Vagrant example03
 
-This Vagrant example will bring up 3 identical Ubuntu nodes  
+This is a Vagrant multi machine example that will install and configure 3 identical Ubuntu nodes in Virtualbox   
   
 **username@laptop:/home/username/vagrant-examples/example03$** vagrant up  
 ```  
