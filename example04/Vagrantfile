@@ -1,0 +1,279 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+#
+# This is a Vagrant multi machine example that will create up to six VM clusters with x number of virtual machines in each cluster using Virtualbox as VM provider.
+#
+
+# Global Settings
+API_VERSION = 2                 # Vagrant API version
+SSH_PUB_KEY = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip # SSH public key
+
+# Cluster1 settings
+CLUSTER1_VM_COUNT = 2                    # Create x number of VMs in cluster1
+CLUSTER1_BOX_IMAGE = "ubuntu/xenial64"   # Vagrant BOX
+CLUSTER1_VM_NAME = "Cluster1-server"     # Virtualbox name & hostname for the cluster1 VMs: (Cluster1-server1, Cluster1-server2, ...)
+CLUSTER1_VM_GROUP = "Cluster1"           # Tag all VMs belonging to cluster1 in Virtualbox with this group
+CLUSTER1_VM_RAM = 1024                   # How much RAM memory should each VM have?
+CLUSTER1_VM_CPU = 1                      # How many vCPU's should each VM have?
+CLUSTER1_VM_SUBNET = "192.168.56.1"      # Assign private network IP to 192.168.56.1#{i}. Example: 192.168.56.11, 192.168.56.12, ...
+CLUSTER1_VM_SHARED_FOLDER = "~/vshare"   # Mount directory ~/vshare from laptop to VM on path /vagrant
+
+# Cluster2 settings
+CLUSTER2_VM_COUNT = 1                    # Create x number of VMs in cluster2. Set to 0 to disable cluster2
+CLUSTER2_BOX_IMAGE = "ubuntu/xenial64"   # Vagrant BOX
+CLUSTER2_VM_NAME = "Cluster2-server"     # Virtualbox name & hostname for the cluster2 VMs (Cluster2-server1, Cluster2-server2, ...)
+CLUSTER2_VM_GROUP = "Cluster2"           # Tag all VMs belonging to cluster2 in Virtualbox with this group
+CLUSTER2_VM_RAM = 1024                   # How much RAM memory should each VM have?
+CLUSTER2_VM_CPU = 1                      # How many vCPU's should each VM have?
+CLUSTER2_VM_SUBNET = "192.168.56.2"      # Assign private network IP to 192.168.56.2#{i}. Example: 192.168.56.21, 192.168.56.22, ...
+CLUSTER2_VM_SHARED_FOLDER = "~/vshare"   # Mount directory ~/vshare from laptop to VM on path /vagrant
+
+# Cluster3 settings
+CLUSTER3_VM_COUNT = 0                    # Create x number of VMs in cluster3. Set to 0 to disable cluster3
+CLUSTER3_BOX_IMAGE = "ubuntu/xenial64"   # Vagrant BOX
+CLUSTER3_VM_NAME = "Cluster3-server"     # Virtualbox name & hostname for the cluster3 VMs (Cluster3-server1, Cluster3-server2, ...)
+CLUSTER3_VM_GROUP = "Cluster3"           # Tag all VMs belonging to cluster3 in Virtualbox with this group
+CLUSTER3_VM_RAM = 1024                   # How much RAM memory should each VM have?
+CLUSTER3_VM_CPU = 1                      # How many vCPU's should each VM have?
+CLUSTER3_VM_SUBNET = "192.168.56.3"      # Assign private network IP to 192.168.56.3#{i}. Example: 192.168.56.31, 192.168.56.32, ...
+CLUSTER3_VM_SHARED_FOLDER = "~/vshare"   # Mount directory ~/vshare from laptop to VM on path /vagrant
+
+# Cluster4 settings
+CLUSTER4_VM_COUNT = 0                    # Create x number of VMs in cluster4. Set to 0 to disable cluster4
+CLUSTER4_BOX_IMAGE = "ubuntu/xenial64"   # Vagrant BOX
+CLUSTER4_VM_NAME = "Cluster4-server"     # Virtualbox name & hostname for the cluster4 VMs (Cluster4-server1, Cluster4-server2, ...)
+CLUSTER4_VM_GROUP = "Cluster4"           # Tag all VMs belonging to cluster4 in Virtualbox with this group
+CLUSTER4_VM_RAM = 1024                   # How much RAM memory should each VM have?
+CLUSTER4_VM_CPU = 1                      # How many vCPU's should each VM have?
+CLUSTER4_VM_SUBNET = "192.168.56.4"      # Assign private network IP to 192.168.56.4#{i}. Example: 192.168.56.41, 192.168.56.42, ...
+CLUSTER4_VM_SHARED_FOLDER = "~/vshare"   # Mount directory ~/vshare from laptop to VM on path /vagrant
+
+# Cluster5 settings
+CLUSTER5_VM_COUNT = 0                    # Create x number of VMs in cluster5. Set to 0 to disable cluster5
+CLUSTER5_BOX_IMAGE = "ubuntu/xenial64"   # Vagrant BOX
+CLUSTER5_VM_NAME = "Cluster5-server"     # Virtualbox name & hostname for the cluster5 VMs (Cluster5-server1, Cluster5-server2, ...)
+CLUSTER5_VM_GROUP = "Cluster5"           # Tag all VMs belonging to cluster5 in Virtualbox with this group
+CLUSTER5_VM_RAM = 1024                   # How much RAM memory should each VM have?
+CLUSTER5_VM_CPU = 1                      # How many vCPU's should each VM have?
+CLUSTER5_VM_SUBNET = "192.168.56.5"      # Assign private network IP to 192.168.56.5#{i}. Example: 192.168.56.51, 192.168.56.52, ...
+CLUSTER5_VM_SHARED_FOLDER = "~/vshare"   # Mount directory ~/vshare from laptop to VM on path /vagrant
+
+# Cluster6 settings
+CLUSTER6_VM_COUNT = 0                    # Create x number of VMs in cluster6. Set to 0 to disable cluster6
+CLUSTER6_BOX_IMAGE = "ubuntu/xenial64"   # Vagrant BOX
+CLUSTER6_VM_NAME = "Cluster6-server"     # Virtualbox name & hostname for the cluster6 VMs (Cluster6-server1, Cluster6-server2, ...)
+CLUSTER6_VM_GROUP = "Cluster6"           # Tag all VMs belonging to cluster6 in Virtualbox with this group
+CLUSTER6_VM_RAM = 1024                   # How much RAM memory should each VM have?
+CLUSTER6_VM_CPU = 1                      # How many vCPU's should each VM have?
+CLUSTER6_VM_SUBNET = "192.168.56.6"      # Assign private network IP to 192.168.56.6#{i}. Example: 192.168.56.61, 192.168.56.62, ...
+CLUSTER6_VM_SHARED_FOLDER = "~/vshare"   # Mount directory ~/vshare from laptop to VM on path /vagrant
+
+$ALL_CLUSTERS_SHELL_PROVISION = <<SCRIPT
+
+    echo "#### Running shell provisioning for all clusters ####"
+
+    # Create SSH user on all clusters
+    useradd jf -d /home/jf -s /bin/bash
+    mkdir -vp /home/jf/.ssh
+    echo #{SSH_PUB_KEY} >> /home/jf/.ssh/authorized_keys
+    echo 'jf ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/lusers
+    chown -vR jf:jf /home/jf
+
+    # APT on all clusters
+    apt-get update
+    apt-get upgrade -y
+
+
+SCRIPT
+
+$CLUSTER1_SHELL_PROVISION = <<SCRIPT
+
+    echo "#### Running shell provisioning for cluster1 ####"
+
+SCRIPT
+
+$CLUSTER2_SHELL_PROVISION = <<SCRIPT
+
+    echo "#### Running shell provisioning for cluster2 ####"
+
+SCRIPT
+
+$CLUSTER3_SHELL_PROVISION = <<SCRIPT
+
+    echo "#### Running shell provisioning for cluster3 ####"
+
+SCRIPT
+
+$CLUSTER4_SHELL_PROVISION = <<SCRIPT
+
+    echo "#### Running shell provisioning for cluster4 ####"
+
+SCRIPT
+
+$CLUSTER5_SHELL_PROVISION = <<SCRIPT
+
+    echo "#### Running shell provisioning for cluster5 ####"
+
+SCRIPT
+
+$CLUSTER6_SHELL_PROVISION = <<SCRIPT
+
+    echo "#### Running shell provisioning for cluster6 ####"
+
+SCRIPT
+
+
+
+
+Vagrant.configure(API_VERSION) do |config|
+
+    # Cluster1
+    (1..CLUSTER1_VM_COUNT).each do |i|
+
+        config.vm.define "#{CLUSTER1_VM_NAME}#{i}" do |cluster1|
+            cluster1.vm.box = CLUSTER1_BOX_IMAGE
+            cluster1.vm.provision "shell", inline: $ALL_CLUSTERS_SHELL_PROVISION
+            cluster1.vm.provision "shell", inline: $CLUSTER1_SHELL_PROVISION
+            cluster1.vm.hostname = "#{CLUSTER1_VM_NAME}#{i}"
+            cluster1.vm.network "private_network", ip: "#{CLUSTER1_VM_SUBNET}#{i}"
+            cluster1.vm.synced_folder "#{CLUSTER1_VM_SHARED_FOLDER}", "/vagrant", disabled: false
+
+        # Virtualbox provider settings
+        config.vm.provider :virtualbox do |cluster1|
+            cluster1.name = "#{CLUSTER1_VM_NAME}#{i}"
+            cluster1.customize [
+                "modifyvm", :id,
+                "--groups", "/#{CLUSTER1_VM_GROUP}",
+                "--memory", "#{CLUSTER1_VM_RAM}",
+                "--cpus", "#{CLUSTER1_VM_CPU}"
+            ]
+
+      end
+    end
+  end
+
+    # Cluster2
+    (1..CLUSTER2_VM_COUNT).each do |i|
+
+        config.vm.define "#{CLUSTER2_VM_NAME}#{i}" do |cluster2|
+            cluster2.vm.box = CLUSTER2_BOX_IMAGE
+            cluster2.vm.provision "shell", inline: $ALL_CLUSTERS_SHELL_PROVISION
+            cluster2.vm.provision "shell", inline: $CLUSTER2_SHELL_PROVISION
+            cluster2.vm.hostname = "#{CLUSTER2_VM_NAME}#{i}"
+            cluster2.vm.network "private_network", ip: "#{CLUSTER2_VM_SUBNET}#{i}"
+
+        # Virtualbox provider settings
+        config.vm.provider :virtualbox do |cluster2|
+            cluster2.name = "#{CLUSTER2_VM_NAME}#{i}"
+            cluster2.customize [
+                "modifyvm", :id,
+                "--groups", "/#{CLUSTER2_VM_GROUP}",
+                "--memory", "#{CLUSTER2_VM_RAM}",
+                "--cpus", "#{CLUSTER2_VM_CPU}"
+            ]
+
+      end
+    end
+  end
+
+    # Cluster3
+    (1..CLUSTER3_VM_COUNT).each do |i|
+
+        config.vm.define "#{CLUSTER3_VM_NAME}#{i}" do |cluster3|
+            cluster3.vm.box = CLUSTER3_BOX_IMAGE
+            cluster3.vm.provision "shell", inline: $ALL_CLUSTERS_SHELL_PROVISION
+            cluster3.vm.provision "shell", inline: $CLUSTER3_SHELL_PROVISION
+            cluster3.vm.hostname = "#{CLUSTER3_VM_NAME}#{i}"
+            cluster3.vm.network "private_network", ip: "#{CLUSTER3_VM_SUBNET}#{i}"
+
+        # Virtualbox provider settings
+        config.vm.provider :virtualbox do |cluster3|
+            cluster3.name = "#{CLUSTER3_VM_NAME}#{i}"
+            cluster3.customize [
+                "modifyvm", :id,
+                "--groups", "/#{CLUSTER3_VM_GROUP}",
+                "--memory", "#{CLUSTER3_VM_RAM}",
+                "--cpus", "#{CLUSTER3_VM_CPU}"
+            ]
+
+      end
+    end
+  end
+
+
+    # Cluster4
+    (1..CLUSTER4_VM_COUNT).each do |i|
+
+        config.vm.define "#{CLUSTER4_VM_NAME}#{i}" do |cluster4|
+            cluster4.vm.box = CLUSTER4_BOX_IMAGE
+            cluster4.vm.provision "shell", inline: $ALL_CLUSTERS_SHELL_PROVISION
+            cluster4.vm.provision "shell", inline: $CLUSTER4_SHELL_PROVISION
+            cluster4.vm.hostname = "#{CLUSTER4_VM_NAME}#{i}"
+            cluster4.vm.network "private_network", ip: "#{CLUSTER4_VM_SUBNET}#{i}"
+
+        # Virtualbox provider settings
+        config.vm.provider :virtualbox do |cluster4|
+            cluster4.name = "#{CLUSTER4_VM_NAME}#{i}"
+            cluster4.customize [
+                "modifyvm", :id,
+                "--groups", "/#{CLUSTER4_VM_GROUP}",
+                "--memory", "#{CLUSTER4_VM_RAM}",
+                "--cpus", "#{CLUSTER4_VM_CPU}"
+            ]
+
+      end
+    end
+  end
+
+
+    # Cluster5
+    (1..CLUSTER5_VM_COUNT).each do |i|
+
+        config.vm.define "#{CLUSTER5_VM_NAME}#{i}" do |cluster5|
+            cluster5.vm.box = CLUSTER5_BOX_IMAGE
+            cluster5.vm.provision "shell", inline: $ALL_CLUSTERS_SHELL_PROVISION
+            cluster5.vm.provision "shell", inline: $CLUSTER5_SHELL_PROVISION
+            cluster5.vm.hostname = "#{CLUSTER5_VM_NAME}#{i}"
+            cluster5.vm.network "private_network", ip: "#{CLUSTER5_VM_SUBNET}#{i}"
+
+        # Virtualbox provider settings
+        config.vm.provider :virtualbox do |cluster5|
+            cluster5.name = "#{CLUSTER5_VM_NAME}#{i}"
+            cluster5.customize [
+                "modifyvm", :id,
+                "--groups", "/#{CLUSTER5_VM_GROUP}",
+                "--memory", "#{CLUSTER5_VM_RAM}",
+                "--cpus", "#{CLUSTER5_VM_CPU}"
+            ]
+
+      end
+    end
+  end
+
+
+    # Cluster6
+    (1..CLUSTER5_VM_COUNT).each do |i|
+
+        config.vm.define "#{CLUSTER6_VM_NAME}#{i}" do |cluster6|
+            cluster6.vm.box = CLUSTER6_BOX_IMAGE
+            cluster6.vm.provision "shell", inline: $ALL_CLUSTERS_SHELL_PROVISION
+            cluster6.vm.provision "shell", inline: $CLUSTER6_SHELL_PROVISION
+            cluster6.vm.hostname = "#{CLUSTER6_VM_NAME}#{i}"
+            cluster6.vm.network "private_network", ip: "#{CLUSTER6_VM_SUBNET}#{i}"
+
+        # Virtualbox provider settings
+        config.vm.provider :virtualbox do |cluster6|
+            cluster6.name = "#{CLUSTER6_VM_NAME}#{i}"
+            cluster6.customize [
+                "modifyvm", :id,
+                "--groups", "/#{CLUSTER6_VM_GROUP}",
+                "--memory", "#{CLUSTER6_VM_RAM}",
+                "--cpus", "#{CLUSTER6_VM_CPU}"
+            ]
+
+      end
+    end
+  end
+
+
+end
