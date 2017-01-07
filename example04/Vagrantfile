@@ -252,7 +252,7 @@ Vagrant.configure(API_VERSION) do |config|
 
 
     # Cluster6
-    (1..CLUSTER5_VM_COUNT).each do |i|
+    (1..CLUSTER6_VM_COUNT).each do |i|
 
         config.vm.define "#{CLUSTER6_VM_NAME}#{i}" do |cluster6|
             cluster6.vm.box = CLUSTER6_BOX_IMAGE
