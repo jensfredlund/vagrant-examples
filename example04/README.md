@@ -1,4 +1,4 @@
-# Vagrant example03
+# Vagrant example04
 
 *This is a Vagrant multi machine example that will create up to six clusters with (x) number of virtual machines in each cluster using Virtualbox as VM provider.*
 
