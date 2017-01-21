@@ -1,0 +1,30 @@
+# -*- mode: ruby -*-
+# # vi: set ft=ruby :
+
+require 'yaml'                           # Use the yaml module to load in servers.yaml
+API_VERSION = "2"                        # Vagrant API version
+SERVERS = YAML.load_file('servers.yaml') # YAML file with VM information
+ 
+Vagrant.configure(API_VERSION) do |config|
+ 
+  # Iterate over server entries in the YAML file
+  SERVERS.each do |server|
+
+    config.vm.define server["name"] do |srv|
+        srv.vm.box = server["box"]
+        srv.vm.provision "shell", inline: server["shell"]
+        srv.vm.network "private_network", ip: server["ip"]
+
+    srv.vm.provider :virtualbox do |vb|
+        vb.name = "#{server["name"]}"
+        vb.customize [
+            "modifyvm", :id,
+            "--groups", "/#{server["group"]}",
+            "--memory", server["ram"],
+            "--cpus", server["cpu"],
+        ]
+
+      end
+    end
+  end
+end
