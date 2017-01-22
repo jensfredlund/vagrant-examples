@@ -13,13 +13,19 @@
     echo "ssh-rsa AAAABMCo7MjGI3bi7l4BOy9jj9bH38xsbZk1j/krMxG/9zdG25uQLglL8w5Mywct/+G681yLQCDEHgU1peesDuPdypS9uWbuT06NnBhxNb9hC5zhva9vV+afkRJLWru20dOaExeaTVrA4uuzYEdllHvUNcYNznhK3lFw== jf@Tzunami" >> /home/jf/.ssh/authorized_keys
     echo 'jf ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/lusers
     chown -vR jf:jf /home/jf
-
-
 - name: ubuntu-02
   group: Ubuntu servers
   box: ubuntu/xenial64
   ip: 192.168.56.212
   cpu: 2
   ram: 2048
+  shell: |
+    apt-get update
+- name: ubuntu-03
+  group: Ubuntu servers
+  box: ubuntu/xenial64
+  ip: 192.168.56.213
+  cpu: 1
+  ram: 1024
   shell: |
     apt-get update
