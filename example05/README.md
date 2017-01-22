@@ -11,7 +11,7 @@ Bringing machine 'ubuntu-03' up with 'virtualbox' provider...
 
 ## Vagrant multi-machine YAML configuration file
 ```
-jf@Tzunami:~/vagrant-examples/example05$
+jf@Tzunami:~/vagrant-examples/example05$ cat servers.yaml
 ---
 - name: ubuntu-01
   group: Ubuntu servers
