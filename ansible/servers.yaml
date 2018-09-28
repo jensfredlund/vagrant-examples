@@ -1,0 +1,21 @@
+---
+- name: Ansible01
+  group: Ansible
+  box: ubuntu/bionic64
+  hostname: Ansible
+  ip: 192.168.56.200
+  cpu: 2
+  ram: 2048
+  shell: |
+    apt update
+    apt -y upgrade
+    apt install -y software-properties-common
+    apt-add-repository ppa:ansible/ansible
+    apt update
+    apt -y install ansible
+    useradd ansible -d /home/ansible -s /bin/bash
+    mkdir -vp /home/ansible/.ssh
+    chown -vR ansible:ansible /home/ansible/.ssh
+    echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDQlBzBYagY4hKSw4J3imjojw3LYC4SZvZDLU81rChBbdcP8Mac9+aOx8iJSIzR9X+hq2TBWya2+qbNNNctaOo8FxgUhw2TdV7+5uNTsM9qe9ByAP8wvLrh2xyKfB0IPAOsMX/LBvYGtoYK7LUnd/zaYtEFEJM2S0TXxB4XjSFSrdy+UPfwkrenHnwd+opl1CgfhiZZ0JeeAB8hXTXH3LGzqJJ5hJ4s389bVyCg5BKqqqJ/zl+BUKd7THDYDRSyfSvShE7J0uyvTn4KO5H9zL/36ksZbm34ETGFn1rDoGq5cgpxMGAsXsFx3RwZ8xTu61ougXe5qG1FwuKKi1GJplEx jf@tzunami" >> /home/ansible/.ssh/authorized_keys
+    echo 'ansible ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/lusers
+    runuser ansible -c "ssh-keygen -f ~/.ssh/ansible -t ecdsa -b 521"    
